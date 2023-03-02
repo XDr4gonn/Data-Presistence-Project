@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainManager : MonoBehaviour
 {
@@ -11,17 +12,21 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text bestText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
+    public GameObject inputNameBar;
+    public TMP_InputField inputNameBarName;
 
     
     // Start is called before the first frame update
     void Start()
     {
+        bestText.text = ScoreManager.Instance.ShowBestText();
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -40,26 +45,15 @@ public class MainManager : MonoBehaviour
 
     private void Update()
     {
-        if (!m_Started)
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                m_Started = true;
-                float randomDirection = Random.Range(-1.0f, 1.0f);
-                Vector3 forceDir = new Vector3(randomDirection, 1, 0);
-                forceDir.Normalize();
-
-                Ball.transform.SetParent(null);
-                Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
-            }
-        }
-        else if (m_GameOver)
+        if (m_GameOver)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+
+        
     }
 
     void AddPoint(int point)
@@ -70,7 +64,35 @@ public class MainManager : MonoBehaviour
 
     public void GameOver()
     {
+        if (ScoreManager.Instance != null && m_Points > ScoreManager.Instance.BestScore)
+        {
+            ScoreManager.Instance.BestScore = m_Points;
+            ScoreManager.Instance.Name = inputNameBarName.text;
+            ScoreManager.Instance.SaveScore();
+        }
         m_GameOver = true;
         GameOverText.SetActive(true);
+        bestText.text = ScoreManager.Instance.ShowBestText();
     }
+      
+    public void StartGame()
+    {
+        if (!m_Started)
+        {
+            if (ScoreManager.Instance != null)
+            { 
+                ScoreManager.Instance.Name = inputNameBar.ToString(); 
+            }
+            inputNameBar.SetActive(false);
+            m_Started = true;
+            float randomDirection = Random.Range(-1.0f, 1.0f);
+            Vector3 forceDir = new Vector3(randomDirection, 1, 0);
+            forceDir.Normalize();
+
+            Ball.transform.SetParent(null);
+            Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
+        }
+    }
+        
+
 }
